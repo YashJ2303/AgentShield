@@ -1,0 +1,153 @@
+version: 1
+default_action: deny
+
+limits:
+  max_cost_per_run: 5.0
+  max_tokens_per_run: 50000
+  max_steps_per_run: 30
+  max_wall_time_seconds: 300
+
+rules:
+  - id: allow_read_queries
+    tool: sql_query
+    action: allow
+    sql_check:
+      blocked_operations: [DROP, TRUNCATE, ALTER]
+      require_where_clause_on: [UPDATE, DELETE]
+
+  - id: allow_web_search
+    tool: web_search
+    action: allow
+    constraints:
+      query:
+        regex: "^.{1,200}$"
+
+  - id: allow_whitelisted_http
+    tool: http_request
+    action: allow
+    domain_allowlist:
+      - "api.company.internal"
+      - "docs.python.org"
+      - "localhost"
+      - "127.0.0.1"
+
+  - id: sandbox_filesystem
+    tool: file_tool
+    action: allow
+    path_allowlist:
+      - "./sandbox"
+    path_denylist:
+      - "../"
+      - "/etc"
+      - "/root"
+      - "C:\\Windows"
+
+  - id: require_email_approval
+    tool: send_email
+    action: require_approval
+    timeout_seconds: 60
+
+  - id: rate_limited_crawler
+    tool: crawl_page
+    action: allow
+    rate_limit:
+      max_calls_per_run: 5
+
+  - id: allow_weather_api
+    tool: weather_tool
+    action: allow
+
+  - id: allow_news_api
+    tool: news_tool
+    action: allow
+
+  - id: allow_github_read
+    tool: github_tool
+    action: allow
+    constraints:
+      operation:
+        regex: "^(get|list|search|read)"
+
+  - id: require_github_write_approval
+    tool: github_tool
+    action: require_approval
+    timeout_seconds: 60
+    constraints:
+      operation:
+        regex: "^(delete|destroy|drop|wipe|create|post|put|patch)"
+
+  # Defense-in-depth: an explicitly high-risk tier is always denied regardless of amount.
+  - id: block_excessive_payment
+    tool: stripe_payment
+    action: deny
+    constraints:
+      tier: { equals: "high_risk" }
+
+  # A standard tier is allowed only under the hard cap; it must not bypass the amount tiers.
+  - id: allow_standard_payment
+    tool: stripe_payment
+    action: allow
+    constraints:
+      tier: { equals: "standard" }
+      amount: { lt: 500 }
+
+  - id: allow_llm_chat
+    tool: llm_chat
+    action: allow
+
+  # --- Payment tiers: numeric constraints (amount must be numeric; missing/non-numeric
+  #     never matches a tier and falls through to the deny default, fail-closed).
+  #     Rules are order-sensitive: the verified-vendor bypass must come BEFORE the generic
+  #     mid-tier review rule, otherwise the mid-tier rule captures it first.
+  - id: allow_micro_payment
+    tool: stripe_payment
+    action: allow
+    constraints:
+      amount: { lt: 100 }
+
+  - id: allow_verified_vendor_payment
+    tool: stripe_payment
+    action: allow
+    constraints:
+      vendor_verified: { equals: "true" }
+      amount: { lt: 500 }
+
+  - id: review_mid_payment
+    tool: stripe_payment
+    action: require_approval
+    timeout_seconds: 90
+    constraints:
+      amount: { gte: 100, lt: 500 }
+
+  - id: block_large_payment
+    tool: stripe_payment
+    action: deny
+    constraints:
+      amount: { gte: 500 }
+
+  # --- Communication tools: outbound side effects are always human-gated.
+  - id: require_slack_approval
+    tool: send_slack
+    action: require_approval
+    timeout_seconds: 60
+
+  - id: require_sms_approval
+    tool: send_sms
+    action: require_approval
+    timeout_seconds: 60
+
+  # --- Threat intel & moderation (secondary validation layers).
+  - id: allow_url_reputation
+    tool: url_reputation
+    action: allow
+
+  - id: allow_content_moderation
+    tool: content_moderation
+    action: allow
+
+  - id: rate_limited_crawl_with_intel
+    tool: crawl_page
+    action: allow
+    rate_limit:
+      max_calls_per_run: 5
+

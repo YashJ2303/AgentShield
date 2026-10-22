@@ -1,0 +1,70 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions & packaging
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+
+# Installer logs & temporary test files
+pip-log.txt
+pip-delete-this-directory.txt
+collect.txt
+
+# Unit test / coverage / linting
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Project local scratch & sandboxes
+sandbox/
+scratch/
+
+# Environment and secrets
+.env
+*.env
+!.env.example
+*.pem
+*.key
+
+# Database and SQLite state files
+*.db
+*.sqlite
+*.sqlite3
+agentshield.db
+test_throwaway.db
+
+# Frontend build artifacts & dependencies
+dashboard/dist/
+dashboard/node_modules/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
