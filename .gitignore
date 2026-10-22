@@ -68,3 +68,7 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Presentations & local slides
+*.pptx
+*.ppt

@@ -32,8 +32,9 @@ protobuf>=4.25.0
 pytest>=8.0.0
 pytest-asyncio>=0.23.0
 
-# Report Generation
+# Report & Presentation Generation
 python-docx>=1.1.0
+python-pptx>=1.0.0
 
 # AgentShield SDK
 -e ./sdk
